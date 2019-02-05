@@ -123,6 +123,7 @@ endif (NOT APPLE AND NOT MINGW AND NOT MSVC)
 option(AEOLUS        "Enable pipe organ synthesizer"      OFF)
 option(ZERBERUS      "Enable experimental SFZ sampler"    ON)
 option(OSC           "Enable OSC remote control protocol" ON)
+option(VST           "Enable vst synthesizer"             ON)
 option(OMR           "Enable PDF import"  OFF)                 # OMR - optical music recognition
 # For installation see: http://ubuntuforums.org/showthread.php?t=1647350
 option(OCR           "Enable OCR, requires OMR" OFF)           # Requires tesseract 3.0, needs work on mac/win
@@ -790,6 +791,10 @@ endif (OMR)
 if (OSC)
       subdirs (thirdparty/ofqf)
 endif (OSC)
+
+if (VST)
+    subdirs (vst)
+endif (VST)
 
 if (NOT USE_SYSTEM_FREETYPE)
       subdirs (thirdparty/freetype)

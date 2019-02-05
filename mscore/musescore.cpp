@@ -145,6 +145,10 @@ extern Ms::Synthesizer* createAeolus();
 extern Ms::Synthesizer* createZerberus();
 #endif
 
+#ifdef VST
+extern Ms::Synthesizer* createVstSynthesizer();
+#endif
+
 #ifdef QT_NO_DEBUG
       Q_LOGGING_CATEGORY(undoRedo, "undoRedo", QtCriticalMsg)
 #else
@@ -3725,6 +3729,9 @@ MasterSynthesizer* synthesizerFactory()
 #endif
 #ifdef ZERBERUS
       ms->registerSynthesizer(createZerberus());
+#endif
+#ifdef VST
+      ms->registerSynthesizer(createVstSynthesizer());
 #endif
       ms->registerEffect(0, new NoEffect);
       ms->registerEffect(0, new ZitaReverb);
