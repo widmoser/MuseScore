@@ -32,12 +32,15 @@ VstAudioPluginProxy::VstAudioPluginProxy(VSTModule* module, AudioHost* host, Tim
 
     effect->resvd1 = (VstIntPtr) this;
     effect->resvd2 = (VstIntPtr) host;
+
+    vstMidiEvents = new VstEvents();
 }
 
 VstAudioPluginProxy::~VstAudioPluginProxy() {
     stop();
     effect = nullptr;
     delete module;
+    delete vstMidiEvents;
 }
 
 void VstAudioPluginProxy::start() {
@@ -89,21 +92,21 @@ bool VstAudioPluginProxy::can(const char* ch) const {
 }
 
 void VstAudioPluginProxy::processAudio(AudioSampleBuffer& outputBuffer) {
-    outputBuffer.clear();
-
-    outputBuffer.setNumChannels(effect->numOutputs);
-    if ((effect->flags & effFlagsCanReplacing) != 0) {
-        effect->processReplacing(effect,
-                                 outputBuffer.getChannels(),
-                                 outputBuffer.getChannels(),
-                                 (VstInt32) outputBuffer.getFrameSize());
-    } else {
-        // TODO:
-        effect->process(effect,
-                        outputBuffer.getChannels(),
-                        outputBuffer.getChannels(),
-                        (VstInt32) outputBuffer.getFrameSize());
-    }
+//    outputBuffer.clear();
+//
+//    outputBuffer.setNumChannels(effect->numOutputs);
+//    if ((effect->flags & effFlagsCanReplacing) != 0) {
+//        effect->processReplacing(effect,
+//                                 outputBuffer.getChannels(),
+//                                 outputBuffer.getChannels(),
+//                                 (VstInt32) outputBuffer.getFrameSize());
+//    } else {
+//        // TODO:
+//        effect->process(effect,
+//                        outputBuffer.getChannels(),
+//                        outputBuffer.getChannels(),
+//                        (VstInt32) outputBuffer.getFrameSize());
+//    }
 }
 
 void VstAudioPluginProxy::onMidiEvent(std::shared_ptr<const MidiMessage> message) {
@@ -113,8 +116,8 @@ void VstAudioPluginProxy::onMidiEvent(std::shared_ptr<const MidiMessage> message
 }
 
 void VstAudioPluginProxy::processMidi(const MidiMessageBuffer& msg) {
-    auto events = (VstEvents*) malloc(sizeof(VstEvents) + sizeof(VstEvents*) * (msg.size() - 2));
-    events->numEvents = msg.size();
+//    auto events = (VstEvents*) malloc(sizeof(VstEvents) + sizeof(VstEvents*) * msg.size());
+    vstMidiEvents->numEvents = msg.size();
     int i = 0;
     for (auto it = msg.getMessages().begin(); it != msg.getMessages().end(); ++it, ++i) {
         auto midiEvent = new VstMidiEvent();
@@ -126,10 +129,10 @@ void VstAudioPluginProxy::processMidi(const MidiMessageBuffer& msg) {
         midiEvent->noteOffVelocity = 0;
         midiEvent->deltaFrames = 0; // TODO: frameOffset;
         memcpy(midiEvent->midiData, (*it)->getData().data(), (size_t) (*it)->getData().size());
-        events->events[i] = reinterpret_cast<VstEvent*>(midiEvent);
+        vstMidiEvents->events[i] = reinterpret_cast<VstEvent*>(midiEvent);
     }
 
-    dispatcher(effProcessEvents, 0, 0, events, 0.0f);
+    dispatcher(effProcessEvents, 0, 0, vstMidiEvents, 0.0f);
 }
 
 bool VstAudioPluginProxy::usesChunks() const noexcept {

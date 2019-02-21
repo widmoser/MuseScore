@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<registry>
+	<plugin uid="1315513412" path="C:/Program Files/VSTPlugins/Kontakt.dll" productName="Kontakt" vendorName="Native Instruments GmbH" vendorVersion="393219" />
+	<plugin uid="1347176265" path="C:/Program Files/VSTPlugins/PlogueBiduleVST_x64.dll" productName="Bidule VST" vendorName="Plogue Art et Technologie, Inc" vendorVersion="9760" />
+	<plugin uid="1347176269" path="C:/Program Files/VSTPlugins/PlogueBiduleVSTi_x64_16.dll" productName="Bidule VSTi 16" vendorName="Plogue Art et Technologie, Inc" vendorVersion="9760" />
+	<plugin uid="1347176270" path="C:/Program Files/VSTPlugins/PlogueBiduleVSTi_x64_32.dll" productName="Bidule VSTi 32" vendorName="Plogue Art et Technologie, Inc" vendorVersion="9760" />
+</registry>

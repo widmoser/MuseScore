@@ -68,6 +68,8 @@ private:
     void onTimer(int timerId);
     void processMidi(const MidiMessageBuffer& msg);
 
+    VstEvents* vstMidiEvents;
+
     VSTModule* module;
     TimerFactory& timerFactory;
     std::unique_ptr<Editor> editor;

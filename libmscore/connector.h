@@ -13,6 +13,7 @@
 #ifndef __CONNECTOR_H__
 #define __CONNECTOR_H__
 
+#include <memory>
 #include "location.h"
 #include "types.h"
 

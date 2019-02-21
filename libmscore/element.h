@@ -13,6 +13,7 @@
 #ifndef __ELEMENT_H__
 #define __ELEMENT_H__
 
+#include <QPainter>
 #include "spatium.h"
 #include "fraction.h"
 #include "scoreElement.h"

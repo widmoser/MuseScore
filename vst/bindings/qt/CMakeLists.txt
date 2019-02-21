@@ -6,6 +6,7 @@ set(OI_VERSION_MINOR 1)
 set(SOURCE_FILES
         QEditor.cpp
         QPluginView.cpp
+        QProgress.cpp
         QtTimerFactory.cpp
         QtSplashScreenProgress.cpp)
 

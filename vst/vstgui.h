@@ -29,6 +29,7 @@ Q_OBJECT
     std::vector<PluginRegistryEntry> selectedPlugins;
     PluginRegistry &pluginRegistry;
     QListWidget *list;
+    QStackedWidget *stack;
     QDialogButtonBox *buttonBox;
     QPushButton *okButton;
     QPushButton *cancelButton;

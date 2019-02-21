@@ -35,9 +35,17 @@ PluginListDialog::PluginListDialog(PluginRegistry &pluginRegistry, QWidget *pare
     cancelButton->setText(tr("Cancel"));
     rescanButton->setText(tr("Rescan"));
 
+    QLabel* loadingLabel = new QLabel("Hello world!");
+    loadingLabel->setAlignment(Qt::AlignCenter);
+
+    stack = new QStackedWidget;
+    stack->addWidget(list);
+    stack->addWidget(loadingLabel);
+    stack->setCurrentIndex(0);
+
     QVBoxLayout *layout = new QVBoxLayout;
     buttonBox = new QDialogButtonBox;
-    layout->addWidget(list);
+    layout->addWidget(stack);
     layout->addWidget(buttonBox);
     buttonBox->addButton(okButton, QDialogButtonBox::AcceptRole);
     buttonBox->addButton(cancelButton, QDialogButtonBox::RejectRole);
@@ -48,6 +56,9 @@ PluginListDialog::PluginListDialog(PluginRegistry &pluginRegistry, QWidget *pare
     connect(rescanButton, SIGNAL(clicked()), SLOT(rescanClicked()));
     connect(list, SIGNAL(itemDoubleClicked(QListWidgetItem * )), this, SLOT(itemDoubleClicked(QListWidgetItem * )));
 
+    for (auto &plugin : pluginRegistry.getPluginInfos()) {
+        add(plugin);
+    }
 }
 
 //---------------------------------------------------------
@@ -56,7 +67,7 @@ PluginListDialog::PluginListDialog(PluginRegistry &pluginRegistry, QWidget *pare
 
 void PluginListDialog::add(const PluginRegistryEntry &plugin) {
     QListWidgetItem *item = new QListWidgetItem;
-    item->setText(QString::fromStdString(plugin.productName));
+    item->setText(plugin.productName);
     item->setData(Qt::UserRole, plugin.uid);
     list->addItem(item);
 }
@@ -85,11 +96,13 @@ void PluginListDialog::cancelClicked() {
 //---------------------------------------------------------
 
 void PluginListDialog::rescanClicked() {
-    pluginRegistry.load(nullptr);
+    stack->setCurrentIndex(1);
+    pluginRegistry.rescan();
     list->clear();
     for (auto &plugin : pluginRegistry.getPluginInfos()) {
         add(plugin);
     }
+    stack->setCurrentIndex(0);
 }
 
 //---------------------------------------------------------
@@ -144,7 +157,7 @@ void VstSynthesizerGui::soundFontAddClicked() {
 
     for (auto &plugin : pluginListDialog.getSelectedPlugins()) {
         QListWidgetItem *item = new QListWidgetItem;
-        item->setText(QString::fromStdString(plugin.productName));
+        item->setText(plugin.productName);
         item->setData(Qt::UserRole, plugin.uid);
         files->addItem(item);
     }

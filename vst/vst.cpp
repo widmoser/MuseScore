@@ -25,6 +25,7 @@ VstSynthesizer::VstSynthesizer()
     patch->name = "Piano (VST)";
     patch->synti = "vst";
     _patchInfo.append(patch);
+    pluginRegistry.init();
 }
 
 const char *VstSynthesizer::name() const {
