@@ -2,15 +2,15 @@
 // Created by Hannes Widmoser on 16/09/15.
 //
 
+#include <QDebug>
+#include <QString>
+#include <QFile>
+#include <QXmlStreamReader>
 #include <iostream>
 #include <sys/stat.h>
-#include <vst/third_party/pugixml/src/pugixml.hpp>
 #include <host/exception/PluginInitializationException.h>
-#include <QDebug>
 
 #include "PluginRegistry.h"
-
-using namespace pugi;
 
 static const char* CacheFileName = "oipluginregistry.xml";
 
@@ -24,10 +24,18 @@ PluginRegistry::PluginRegistry(AudioHost& host)
 //    uidWhiteList.insert(1869180532); // OrchestralInterface
 }
 
-void PluginRegistry::load(Progress* progress) {
-//    if (hasFile()) {
-//        loadFromFile();
-//    }
+void PluginRegistry::init(Progress* progress) {
+    if (hasFile()) {
+        loadFromFile();
+        return;
+    }
+    rescan(progress);
+}
+
+void PluginRegistry::rescan(Progress* progress) {
+    if (hasFile()) {
+        loadFromFile();
+    }
     scan(progress);
     saveToFile();
 }
@@ -104,48 +112,65 @@ void PluginRegistry::scan(const QDir& dir,
     }
 }
 
-void PluginRegistry::loadFromFile() {
-    xml_document document;
-    document.load_file(CacheFileName);
-    xml_node docElement = document.document_element();
-    xml_object_range<xml_node_iterator> pluginElements = docElement.children();
-    for (xml_node_iterator i = pluginElements.begin(); i != pluginElements.end(); ++i) {
-        PluginRegistryEntry e;
-        e.uid = i->attribute("uid").as_int(0);
-//        e.path = i->attribute("path").as_string();
-        e.productName = i->attribute("productName").as_string("");
-        e.vendorName = i->attribute("vendorName").as_string("");
-        e.vendorVersion = i->attribute("vendorVersion").as_int(0);
-        addEntry(e);
-    }
+namespace Ms {
+    extern QString dataPath;
 }
 
 bool PluginRegistry::hasFile() {
-    struct stat buffer;
-    return (stat(CacheFileName, &buffer) == 0);
+    QFile f(Ms::dataPath + "/vstplugins.xml");
+    return f.exists();
+}
+
+void PluginRegistry::loadFromFile() {
+    QFile f(Ms::dataPath + "/vstplugins.xml");
+
+    if (!f.exists()) {
+        return;
+    }
+
+    QXmlStreamReader xmlReader(&f);
+    if (xmlReader.readNextStartElement()) {
+        while (xmlReader.readNextStartElement()) {
+            PluginRegistryEntry e;
+            auto attributes = xmlReader.attributes();
+            e.uid = attributes.value("uid").toInt();
+            e.path = QFileInfo(attributes.value("path").toString());
+            e.productName = attributes.value("productName").toString();
+            e.vendorName = attributes.value("vendorName").toString();
+            e.vendorVersion = attributes.value("vendorVersion").toInt();
+            addEntry(e);
+        } // <plugin>
+    } // <plugins>
 }
 
 void PluginRegistry::saveToFile() {
-    xml_document document;
-    xml_node docElement = document.append_child("registry");
+    QFile f(Ms::dataPath + "/vstplugins.xml");
+    QXmlStreamWriter xmlWriter(&f);
+
+    xmlWriter.writeStartDocument();
+    xmlWriter.writeStartElement("plugins");
+
     for (const auto& file : file2uid) {
         const PluginRegistryEntry& entry = file.second;
-        xml_node e = docElement.append_child("plugin");
-        e.append_attribute("uid").set_value(entry.uid);
-        e.append_attribute("path").set_value(entry.path.absoluteFilePath().toStdString().c_str());
-        e.append_attribute("productName").set_value(entry.productName.c_str());
-        e.append_attribute("vendorName").set_value(entry.vendorName.c_str());
-        e.append_attribute("vendorVersion").set_value(entry.vendorVersion);
+        xmlWriter.writeStartElement("plugin");
+        xmlWriter.writeAttribute("uid", QString(entry.uid));
+        xmlWriter.writeAttribute("path", entry.path.absoluteFilePath());
+        xmlWriter.writeAttribute("productName", entry.productName);
+        xmlWriter.writeAttribute("vendorName", entry.vendorName);
+        xmlWriter.writeAttribute("vendorVersion", QString(entry.vendorVersion));
+        xmlWriter.writeEndElement();
     }
-    document.save_file(CacheFileName);
+
+    xmlWriter.writeEndElement();
+    xmlWriter.writeEndDocument();
 }
 
 PluginRegistryEntry PluginRegistry::getInfo(const QFileInfo& filepath, PluginRegistryEntry& result) const {
     AudioPlugin* plugin = host.open(filepath);
     result.uid = plugin->getUID();
     result.path = filepath;
-    result.productName = plugin->getProductName();
-    result.vendorName = plugin->getVendorName();
+    result.productName = QString::fromStdString(plugin->getProductName());
+    result.vendorName = QString::fromStdString(plugin->getVendorName());
     result.vendorVersion = plugin->getVendorVersion();
     delete plugin;
     return result;

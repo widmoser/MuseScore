@@ -19,14 +19,15 @@ public:
     QFileInfo path;
     int uid;
     int vendorVersion;
-    std::string vendorName;
-    std::string productName;
+    QString vendorName;
+    QString productName;
 };
 
 class PluginRegistry {
 public:
     PluginRegistry(AudioHost& host);
-    void load(Progress* progress = nullptr);
+    void init(Progress* progress = nullptr);
+    void rescan(Progress* progress = nullptr);
 
     const PluginRegistryEntry& getPluginInfo(int uid) const;
     const PluginRegistryEntry& getPluginInfo(const QFileInfo& path) const;
